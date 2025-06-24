@@ -111,15 +111,16 @@ func secondLevel(ctx context.Context, loginEmployee int64, first []map[Dimension
 		}
 		//取对应字段的交集(这里循环其实只有一个元素)
 		for field, thirdLevelValue := range thirdLevelValues {
+			_, ok := mapFieldValues[field]
 			//不存在，则直接赋值
-			if _, ok := mapFieldValues[field]; !ok {
+			if !ok {
 				mapFieldValues[field] = thirdLevelValue
-			} else {
-				//取交集
-				mapFieldValues[field] = slice.Intersection(mapFieldValues[field], thirdLevelValue)
-				//去重
-				mapFieldValues[field] = slice.Unique(mapFieldValues[field])
+				continue
 			}
+			//取交集
+			mapFieldValues[field] = slice.Intersection(mapFieldValues[field], thirdLevelValue)
+			//去重
+			mapFieldValues[field] = slice.Unique(mapFieldValues[field])
 			//and关系判断交集,如果是空的则全部不成立
 			if len(mapFieldValues[field]) == 0 {
 				return nil, nil
@@ -151,10 +152,7 @@ func thirdLevel(ctx context.Context, loginEmployee int64, second map[DimensionTy
 		if len(ids) == 0 {
 			return nil, nil
 		}
-		for _, id := range ids {
-			//根据字段存值返回
-			mapFieldValues[dimension] = append(mapFieldValues[dimension], id)
-		}
+		mapFieldValues[dimension] = ids
 		break
 	}
 	return mapFieldValues, nil
