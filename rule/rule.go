@@ -65,12 +65,12 @@ func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAli
 }
 
 // 获取对应字段的拥有可查看的id值
-func getFieldIds(ctx context.Context, loginEmployee int64, exclude [][]map[DimensionType][]Element) (map[DimensionType][]int64, error) {
+func getFieldIds(ctx context.Context, loginEmployee int64, exclude [][]map[DimensionType][]Element) (map[DimensionType][]any, error) {
 	if len(exclude) == 0 {
 		return nil, nil
 	}
 	//每个元素之间是or关系，取并集
-	mapFieldValues := make(map[DimensionType][]int64, len(exclude))
+	mapFieldValues := make(map[DimensionType][]any, len(exclude))
 	for _, first := range exclude {
 		secondLevelValues, err := secondLevel(ctx, loginEmployee, first)
 		if err != nil {
@@ -96,9 +96,9 @@ func getFieldIds(ctx context.Context, loginEmployee int64, exclude [][]map[Dimen
 }
 
 // 第2层(元素之间与逻辑)
-func secondLevel(ctx context.Context, loginEmployee int64, first []map[DimensionType][]Element) (map[DimensionType][]int64, error) {
+func secondLevel(ctx context.Context, loginEmployee int64, first []map[DimensionType][]Element) (map[DimensionType][]any, error) {
 	//这层每个元素之间都是and关系,取交集
-	mapFieldValues := make(map[DimensionType][]int64, len(first))
+	mapFieldValues := make(map[DimensionType][]any, len(first))
 	for _, second := range first {
 		thirdLevelValues, err := thirdLevel(ctx, loginEmployee, second)
 		if err != nil {
@@ -129,11 +129,11 @@ func secondLevel(ctx context.Context, loginEmployee int64, first []map[Dimension
 }
 
 // 第3层
-func thirdLevel(ctx context.Context, loginEmployee int64, second map[DimensionType][]Element) (map[DimensionType][]int64, error) {
+func thirdLevel(ctx context.Context, loginEmployee int64, second map[DimensionType][]Element) (map[DimensionType][]any, error) {
 	//map只有一个元素
 	var (
 		err            error
-		mapFieldValues = make(map[DimensionType][]int64, 1)
+		mapFieldValues = make(map[DimensionType][]any, 1)
 	)
 	//其实只有一个元素
 	for dimension, value := range second {
@@ -150,15 +150,17 @@ func thirdLevel(ctx context.Context, loginEmployee int64, second map[DimensionTy
 		if len(ids) == 0 {
 			return nil, nil
 		}
-		//根据字段存值返回
-		mapFieldValues[dimension] = ids
+		for _, id := range ids {
+			//根据字段存值返回
+			mapFieldValues[dimension] = append(mapFieldValues[dimension], id)
+		}
 		break
 	}
 	return mapFieldValues, nil
 }
 
 // 构建最终的sql
-func buildSql(ctx context.Context, includeValues, excludeValues map[DimensionType][]int64) (string, error) {
+func buildSql(ctx context.Context, includeValues, excludeValues map[DimensionType][]any) (string, error) {
 	lengthInclude := len(includeValues)
 	lengthExclude := len(excludeValues)
 	//拼接sql
@@ -197,7 +199,7 @@ func buildSql(ctx context.Context, includeValues, excludeValues map[DimensionTyp
 }
 
 // 处理别名
-func dealWithAlias(ctx context.Context, includeValues, excludeValues map[DimensionType][]int64, fieldAlias map[DimensionType]DimensionType) {
+func dealWithAlias(ctx context.Context, includeValues, excludeValues map[DimensionType][]any, fieldAlias map[DimensionType]DimensionType) {
 	for field, alias := range fieldAlias {
 		if value, ok := includeValues[field]; ok {
 			includeValues[alias] = value
