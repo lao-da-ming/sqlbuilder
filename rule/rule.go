@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
 	"log"
+	"reflect"
 	"strings"
 )
 
@@ -137,7 +138,7 @@ func thirdLevel(ctx context.Context, loginEmployee int64, second map[DimensionTy
 	)
 	//其实只有一个元素
 	for dimension, value := range second {
-		var ids []int64
+		var ids []any
 		switch dimension {
 		case CreatedBy: //人员维度
 			ids, err = createByDimensional(ctx, loginEmployee, value)
@@ -171,7 +172,7 @@ func buildSql(ctx context.Context, includeValues, excludeValues map[DimensionTyp
 		index++
 		sqlBuilder.WriteString(string(field))
 		sqlBuilder.WriteString(" IN (")
-		sqlBuilder.WriteString(slice.Join(value, ","))
+		sqlBuilder.WriteString(joinArrayElementForSql(value, ","))
 		sqlBuilder.WriteString(")")
 		if index != lengthInclude {
 			sqlBuilder.WriteString(" OR ")
@@ -188,7 +189,7 @@ func buildSql(ctx context.Context, includeValues, excludeValues map[DimensionTyp
 		index++
 		sqlBuilder.WriteString(string(field))
 		sqlBuilder.WriteString(" NOT IN (")
-		sqlBuilder.WriteString(slice.Join(value, ","))
+		sqlBuilder.WriteString(joinArrayElementForSql(value, ","))
 		sqlBuilder.WriteString(")")
 		if index != lengthExclude {
 			sqlBuilder.WriteString(" OR ")
@@ -210,4 +211,26 @@ func dealWithAlias(ctx context.Context, includeValues, excludeValues map[Dimensi
 			delete(excludeValues, field)
 		}
 	}
+}
+
+// 数组元素连接
+func joinArrayElementForSql(values []any, separator string) string {
+	lenValues := len(values)
+	if lenValues == 0 {
+		return ""
+	}
+	itemType := reflect.TypeOf(values[0]).String()
+	strBuilder := strings.Builder{}
+	switch itemType {
+	case "string": //字符串类型
+		for key, item := range values {
+			strBuilder.WriteString(fmt.Sprintf("'%v'", item))
+			if key != lenValues-1 {
+				strBuilder.WriteString(separator)
+			}
+		}
+	default: //其他类型型
+		strBuilder.WriteString(slice.Join(values, separator))
+	}
+	return strBuilder.String()
 }
