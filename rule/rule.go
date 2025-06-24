@@ -64,59 +64,6 @@ func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAli
 	return buildSql(ctx, includeValues, excludeValues)
 }
 
-// 构建最终的sql
-func buildSql(ctx context.Context, includeValues, excludeValues map[DimensionType][]int64) (string, error) {
-	lengthInclude := len(includeValues)
-	lengthExclude := len(excludeValues)
-	//拼接sql
-	index := 0
-	sqlBuilder := strings.Builder{}
-	sqlBuilder.WriteString(" (")
-	for field, value := range includeValues {
-		index++
-		sqlBuilder.WriteString(string(field))
-		sqlBuilder.WriteString(" IN (")
-		sqlBuilder.WriteString(slice.Join(value, ","))
-		sqlBuilder.WriteString(")")
-		if index != lengthInclude {
-			sqlBuilder.WriteString(" OR ")
-		}
-	}
-	sqlBuilder.WriteString(") ")
-	if lengthExclude == 0 {
-		return sqlBuilder.String(), nil
-	}
-	sqlBuilder.WriteString("AND (")
-	//初始化i
-	index = 0
-	for field, value := range excludeValues {
-		index++
-		sqlBuilder.WriteString(string(field))
-		sqlBuilder.WriteString(" NOT IN (")
-		sqlBuilder.WriteString(slice.Join(value, ","))
-		sqlBuilder.WriteString(")")
-		if index != lengthExclude {
-			sqlBuilder.WriteString(" OR ")
-		}
-	}
-	sqlBuilder.WriteString(") ")
-	return sqlBuilder.String(), nil
-}
-
-// 处理别名
-func dealWithAlias(ctx context.Context, includeValues, excludeValues map[DimensionType][]int64, fieldAlias map[DimensionType]DimensionType) {
-	for field, alias := range fieldAlias {
-		if value, ok := includeValues[field]; ok {
-			includeValues[alias] = value
-			delete(includeValues, field)
-		}
-		if value, ok := excludeValues[field]; ok {
-			excludeValues[alias] = value
-			delete(excludeValues, field)
-		}
-	}
-}
-
 // 获取对应字段的拥有可查看的id值
 func getFieldIds(ctx context.Context, loginEmployee int64, exclude [][]map[DimensionType][]Element) (map[DimensionType][]int64, error) {
 	if len(exclude) == 0 {
@@ -208,4 +155,57 @@ func thirdLevel(ctx context.Context, loginEmployee int64, second map[DimensionTy
 		break
 	}
 	return mapFieldValues, nil
+}
+
+// 构建最终的sql
+func buildSql(ctx context.Context, includeValues, excludeValues map[DimensionType][]int64) (string, error) {
+	lengthInclude := len(includeValues)
+	lengthExclude := len(excludeValues)
+	//拼接sql
+	index := 0
+	sqlBuilder := strings.Builder{}
+	sqlBuilder.WriteString(" (")
+	for field, value := range includeValues {
+		index++
+		sqlBuilder.WriteString(string(field))
+		sqlBuilder.WriteString(" IN (")
+		sqlBuilder.WriteString(slice.Join(value, ","))
+		sqlBuilder.WriteString(")")
+		if index != lengthInclude {
+			sqlBuilder.WriteString(" OR ")
+		}
+	}
+	sqlBuilder.WriteString(") ")
+	if lengthExclude == 0 {
+		return sqlBuilder.String(), nil
+	}
+	sqlBuilder.WriteString("AND (")
+	//初始化i
+	index = 0
+	for field, value := range excludeValues {
+		index++
+		sqlBuilder.WriteString(string(field))
+		sqlBuilder.WriteString(" NOT IN (")
+		sqlBuilder.WriteString(slice.Join(value, ","))
+		sqlBuilder.WriteString(")")
+		if index != lengthExclude {
+			sqlBuilder.WriteString(" OR ")
+		}
+	}
+	sqlBuilder.WriteString(") ")
+	return sqlBuilder.String(), nil
+}
+
+// 处理别名
+func dealWithAlias(ctx context.Context, includeValues, excludeValues map[DimensionType][]int64, fieldAlias map[DimensionType]DimensionType) {
+	for field, alias := range fieldAlias {
+		if value, ok := includeValues[field]; ok {
+			includeValues[alias] = value
+			delete(includeValues, field)
+		}
+		if value, ok := excludeValues[field]; ok {
+			excludeValues[alias] = value
+			delete(excludeValues, field)
+		}
+	}
 }
