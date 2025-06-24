@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"sqlbuilder/rule"
+	"time"
 )
 
 func main() {
@@ -48,9 +50,11 @@ func main() {
 	}
 	fieldAlias := map[rule.DimensionType]rule.DimensionType{
 		"created_by": "o.created_by",
-		"position":   "o.position",
 	}
-	sql, err := rule.GetEmployeePermissionSql(10, fieldAlias, include, exclude)
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
+	defer cancel()
+	sql, err := rule.GetEmployeePermissionSql(ctx, 10, fieldAlias, include, exclude)
 	if err != nil {
 		panic(err)
 	}

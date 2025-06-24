@@ -1,6 +1,7 @@
 package rule
 
 import (
+	"context"
 	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
 	"log"
@@ -22,10 +23,10 @@ type Element struct {
 }
 
 // 获取可以访问数据的sql条件，返回空sql表示无任何权限
-func GetEmployeePermissionSql(loginEmployee int64, fieldAlias map[DimensionType]DimensionType, include, exclude [][]map[DimensionType][]Element) (sql string, err error) {
+func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAlias map[DimensionType]DimensionType, include, exclude [][]map[DimensionType][]Element) (sql string, err error) {
 	//无权限返回的sql
 	denySql := " 1==2 "
-	includeValues, err := getFieldIds(loginEmployee, include)
+	includeValues, err := getFieldIds(ctx, loginEmployee, include)
 	if err != nil {
 		return "", err
 	}
@@ -35,7 +36,7 @@ func GetEmployeePermissionSql(loginEmployee int64, fieldAlias map[DimensionType]
 		return denySql, nil
 	}
 	//排除部分这层每个元素之间都是or关系
-	excludeValues, err := getFieldIds(loginEmployee, exclude)
+	excludeValues, err := getFieldIds(ctx, loginEmployee, exclude)
 	if err != nil {
 		return "", err
 	}
@@ -58,13 +59,13 @@ func GetEmployeePermissionSql(loginEmployee int64, fieldAlias map[DimensionType]
 	}
 	log.Printf("最终差集为指定:%v  排除:%v \r\n", includeValues, excludeValues)
 	//处理别名(map引用无需返回值)
-	dealWithAlias(includeValues, excludeValues, fieldAlias)
+	dealWithAlias(ctx, includeValues, excludeValues, fieldAlias)
 	//拼接sql
-	return buildSql(includeValues, excludeValues)
+	return buildSql(ctx, includeValues, excludeValues)
 }
 
 // 构建最终的sql
-func buildSql(includeValues, excludeValues map[DimensionType][]int64) (string, error) {
+func buildSql(ctx context.Context, includeValues, excludeValues map[DimensionType][]int64) (string, error) {
 	lengthInclude := len(includeValues)
 	lengthExclude := len(excludeValues)
 	//拼接sql
@@ -103,7 +104,7 @@ func buildSql(includeValues, excludeValues map[DimensionType][]int64) (string, e
 }
 
 // 处理别名
-func dealWithAlias(includeValues, excludeValues map[DimensionType][]int64, fieldAlias map[DimensionType]DimensionType) {
+func dealWithAlias(ctx context.Context, includeValues, excludeValues map[DimensionType][]int64, fieldAlias map[DimensionType]DimensionType) {
 	for field, alias := range fieldAlias {
 		if value, ok := includeValues[field]; ok {
 			includeValues[alias] = value
@@ -117,14 +118,14 @@ func dealWithAlias(includeValues, excludeValues map[DimensionType][]int64, field
 }
 
 // 获取对应字段的拥有可查看的id值
-func getFieldIds(loginEmployee int64, exclude [][]map[DimensionType][]Element) (map[DimensionType][]int64, error) {
+func getFieldIds(ctx context.Context, loginEmployee int64, exclude [][]map[DimensionType][]Element) (map[DimensionType][]int64, error) {
 	if len(exclude) == 0 {
 		return nil, nil
 	}
 	//每个元素之间是or关系，取并集
 	mapFieldValues := make(map[DimensionType][]int64, len(exclude))
 	for _, first := range exclude {
-		secondLevelValues, err := secondLevel(loginEmployee, first)
+		secondLevelValues, err := secondLevel(ctx, loginEmployee, first)
 		if err != nil {
 			return nil, err
 		}
@@ -148,11 +149,11 @@ func getFieldIds(loginEmployee int64, exclude [][]map[DimensionType][]Element) (
 }
 
 // 第2层(元素之间与逻辑)
-func secondLevel(loginEmployee int64, first []map[DimensionType][]Element) (map[DimensionType][]int64, error) {
+func secondLevel(ctx context.Context, loginEmployee int64, first []map[DimensionType][]Element) (map[DimensionType][]int64, error) {
 	//这层每个元素之间都是and关系,取交集
 	mapFieldValues := make(map[DimensionType][]int64, len(first))
 	for _, second := range first {
-		thirdLevelValues, err := thirdLevel(loginEmployee, second)
+		thirdLevelValues, err := thirdLevel(ctx, loginEmployee, second)
 		if err != nil {
 			return nil, err
 		}
@@ -181,7 +182,7 @@ func secondLevel(loginEmployee int64, first []map[DimensionType][]Element) (map[
 }
 
 // 第3层
-func thirdLevel(loginEmployee int64, second map[DimensionType][]Element) (map[DimensionType][]int64, error) {
+func thirdLevel(ctx context.Context, loginEmployee int64, second map[DimensionType][]Element) (map[DimensionType][]int64, error) {
 	//map只有一个元素
 	var (
 		err            error
@@ -192,9 +193,9 @@ func thirdLevel(loginEmployee int64, second map[DimensionType][]Element) (map[Di
 		var ids []int64
 		switch dimension {
 		case CreatedBy: //人员维度
-			ids, err = createByDimensional(loginEmployee, value)
+			ids, err = createByDimensional(ctx, loginEmployee, value)
 		case Position: //岗位维度
-			ids, err = positionDimensional(loginEmployee, value)
+			ids, err = positionDimensional(ctx, loginEmployee, value)
 		}
 		if err != nil {
 			return nil, err
