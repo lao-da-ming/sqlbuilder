@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sqlbuilder/rule"
+	"sqlbuilder/resource_permission"
 	"time"
 )
 

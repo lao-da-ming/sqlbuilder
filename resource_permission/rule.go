@@ -138,21 +138,21 @@ func thirdLevel(ctx context.Context, loginEmployee int64, second map[DbField][]E
 		mapFieldValues = make(map[DbField][]any, 1)
 	)
 	//其实只有一个元素
-	for dimension, value := range second {
-		var ids []any
-		switch dimension {
-		case CreatedBy: //人员维度
-			ids, err = createByDimensional(ctx, loginEmployee, value)
-		case Position: //岗位维度
-			ids, err = positionDimensional(ctx, loginEmployee, value)
+	for field, value := range second {
+		var collections []any //集合
+		switch field {
+		case CreatedBy: //人员id
+			collections, err = createByDimensional(ctx, loginEmployee, value)
+		case Position: //岗位id
+			collections, err = positionDimensional(ctx, loginEmployee, value)
 		}
 		if err != nil {
 			return nil, err
 		}
-		if len(ids) == 0 {
+		if len(collections) == 0 {
 			return nil, nil
 		}
-		mapFieldValues[dimension] = ids
+		mapFieldValues[field] = collections
 		break
 	}
 	return mapFieldValues, nil
