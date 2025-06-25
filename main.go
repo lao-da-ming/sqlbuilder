@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sqlbuilder/rule"
+	"sqlbuilder/rule/data"
 	"time"
 )
 
@@ -39,17 +40,17 @@ func main() {
 			]
 	]`
 	//指定部分
-	var include [][]map[rule.DbField][]rule.Element
+	var include [][]map[data.DbField][]data.Element
 	if err := json.Unmarshal([]byte(includeStr), &include); err != nil {
 		panic(err)
 	}
 	//排除部分
-	var exclude [][]map[rule.DbField][]rule.Element
+	var exclude [][]map[data.DbField][]data.Element
 	if err := json.Unmarshal([]byte(excludeStr), &exclude); err != nil {
 		panic(err)
 	}
 	//字段别名
-	fieldAlias := map[rule.DbField]rule.DbField{
+	fieldAlias := map[data.DbField]data.DbField{
 		"created_by": "o.created_by",
 	}
 	ctx := context.Background()
