@@ -70,8 +70,8 @@ func getFieldValues(ctx context.Context, loginEmployee int64, exclude [][]map[Db
 	}
 	//每个元素之间是or关系，取并集
 	mapFieldValues := make(map[DbField][]any, len(exclude))
-	for _, first := range exclude {
-		secondLevelValues, err := secondLevel(ctx, loginEmployee, first)
+	for _, firstLevelItem := range exclude {
+		secondLevelValues, err := secondLevel(ctx, loginEmployee, firstLevelItem)
 		if err != nil {
 			return nil, err
 		}
@@ -95,11 +95,11 @@ func getFieldValues(ctx context.Context, loginEmployee int64, exclude [][]map[Db
 }
 
 // 第2层(元素之间与逻辑)
-func secondLevel(ctx context.Context, loginEmployee int64, first []map[DbField][]Element) (map[DbField][]any, error) {
+func secondLevel(ctx context.Context, loginEmployee int64, firstLevelItem []map[DbField][]Element) (map[DbField][]any, error) {
 	//这层每个元素之间都是and关系,取交集
-	mapFieldValues := make(map[DbField][]any, len(first))
-	for _, second := range first {
-		thirdLevelValues, err := thirdLevel(ctx, loginEmployee, second)
+	mapFieldValues := make(map[DbField][]any, len(firstLevelItem))
+	for _, secondLevelItem := range firstLevelItem {
+		thirdLevelValues, err := thirdLevel(ctx, loginEmployee, secondLevelItem)
 		if err != nil {
 			return nil, err
 		}
@@ -129,14 +129,14 @@ func secondLevel(ctx context.Context, loginEmployee int64, first []map[DbField][
 }
 
 // 第3层
-func thirdLevel(ctx context.Context, loginEmployee int64, second map[DbField][]Element) (map[DbField][]any, error) {
+func thirdLevel(ctx context.Context, loginEmployee int64, secondLevelItem map[DbField][]Element) (map[DbField][]any, error) {
 	//map只有一个元素
 	var (
 		err            error
 		mapFieldValues = make(map[DbField][]any, 1)
 	)
 	//其实只有一个元素
-	for field, value := range second {
+	for field, value := range secondLevelItem {
 		var collections []any //集合
 		//TODO添加不通的字段在这里维护数据源
 		switch field {
