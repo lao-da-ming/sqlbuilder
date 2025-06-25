@@ -27,7 +27,7 @@ type Element struct {
 func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAlias map[DbField]DbField, include, exclude [][]map[DbField][]Element) (sql string, err error) {
 	//无权限返回的sql
 	denySql := " 1=2 "
-	includeValues, err := getFieldIds(ctx, loginEmployee, include)
+	includeValues, err := getFieldValues(ctx, loginEmployee, include)
 	if err != nil {
 		return "", err
 	}
@@ -37,7 +37,7 @@ func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAli
 		return denySql, nil
 	}
 	//排除部分这层每个元素之间都是or关系
-	excludeValues, err := getFieldIds(ctx, loginEmployee, exclude)
+	excludeValues, err := getFieldValues(ctx, loginEmployee, exclude)
 	if err != nil {
 		return "", err
 	}
@@ -66,7 +66,7 @@ func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAli
 }
 
 // 获取对应字段的拥有可查看的id值
-func getFieldIds(ctx context.Context, loginEmployee int64, exclude [][]map[DbField][]Element) (map[DbField][]any, error) {
+func getFieldValues(ctx context.Context, loginEmployee int64, exclude [][]map[DbField][]Element) (map[DbField][]any, error) {
 	if len(exclude) == 0 {
 		return nil, nil
 	}
