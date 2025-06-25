@@ -10,11 +10,11 @@ import (
 )
 
 // 维度
-type DimensionType string
+type DbField string
 
 const (
-	CreatedBy DimensionType = "created_by"
-	Position  DimensionType = "position"
+	CreatedBy DbField = "created_by"
+	Position  DbField = "position"
 )
 
 // 元素
@@ -24,7 +24,7 @@ type Element struct {
 }
 
 // 获取可以访问数据的sql条件，返回空sql表示无任何权限
-func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAlias map[DimensionType]DimensionType, include, exclude [][]map[DimensionType][]Element) (sql string, err error) {
+func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAlias map[DbField]DbField, include, exclude [][]map[DbField][]Element) (sql string, err error) {
 	//无权限返回的sql
 	denySql := " 1=2 "
 	includeValues, err := getFieldIds(ctx, loginEmployee, include)
@@ -66,12 +66,12 @@ func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAli
 }
 
 // 获取对应字段的拥有可查看的id值
-func getFieldIds(ctx context.Context, loginEmployee int64, exclude [][]map[DimensionType][]Element) (map[DimensionType][]any, error) {
+func getFieldIds(ctx context.Context, loginEmployee int64, exclude [][]map[DbField][]Element) (map[DbField][]any, error) {
 	if len(exclude) == 0 {
 		return nil, nil
 	}
 	//每个元素之间是or关系，取并集
-	mapFieldValues := make(map[DimensionType][]any, len(exclude))
+	mapFieldValues := make(map[DbField][]any, len(exclude))
 	for _, first := range exclude {
 		secondLevelValues, err := secondLevel(ctx, loginEmployee, first)
 		if err != nil {
@@ -97,9 +97,9 @@ func getFieldIds(ctx context.Context, loginEmployee int64, exclude [][]map[Dimen
 }
 
 // 第2层(元素之间与逻辑)
-func secondLevel(ctx context.Context, loginEmployee int64, first []map[DimensionType][]Element) (map[DimensionType][]any, error) {
+func secondLevel(ctx context.Context, loginEmployee int64, first []map[DbField][]Element) (map[DbField][]any, error) {
 	//这层每个元素之间都是and关系,取交集
-	mapFieldValues := make(map[DimensionType][]any, len(first))
+	mapFieldValues := make(map[DbField][]any, len(first))
 	for _, second := range first {
 		thirdLevelValues, err := thirdLevel(ctx, loginEmployee, second)
 		if err != nil {
@@ -131,11 +131,11 @@ func secondLevel(ctx context.Context, loginEmployee int64, first []map[Dimension
 }
 
 // 第3层
-func thirdLevel(ctx context.Context, loginEmployee int64, second map[DimensionType][]Element) (map[DimensionType][]any, error) {
+func thirdLevel(ctx context.Context, loginEmployee int64, second map[DbField][]Element) (map[DbField][]any, error) {
 	//map只有一个元素
 	var (
 		err            error
-		mapFieldValues = make(map[DimensionType][]any, 1)
+		mapFieldValues = make(map[DbField][]any, 1)
 	)
 	//其实只有一个元素
 	for dimension, value := range second {
@@ -159,7 +159,7 @@ func thirdLevel(ctx context.Context, loginEmployee int64, second map[DimensionTy
 }
 
 // 构建最终的sql
-func buildSql(ctx context.Context, includeValues, excludeValues map[DimensionType][]any) (string, error) {
+func buildSql(ctx context.Context, includeValues, excludeValues map[DbField][]any) (string, error) {
 	lengthInclude := len(includeValues)
 	lengthExclude := len(excludeValues)
 	//拼接sql
@@ -198,7 +198,7 @@ func buildSql(ctx context.Context, includeValues, excludeValues map[DimensionTyp
 }
 
 // 处理别名
-func setAlias(ctx context.Context, includeValues, excludeValues map[DimensionType][]any, fieldAlias map[DimensionType]DimensionType) {
+func setAlias(ctx context.Context, includeValues, excludeValues map[DbField][]any, fieldAlias map[DbField]DbField) {
 	for field, alias := range fieldAlias {
 		if value, ok := includeValues[field]; ok {
 			includeValues[alias] = value

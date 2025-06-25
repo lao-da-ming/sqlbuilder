@@ -39,17 +39,17 @@ func main() {
 			]
 	]`
 	//指定部分
-	var include [][]map[rule.DimensionType][]rule.Element
+	var include [][]map[rule.DbField][]rule.Element
 	if err := json.Unmarshal([]byte(includeStr), &include); err != nil {
 		panic(err)
 	}
 	//排除部分
-	var exclude [][]map[rule.DimensionType][]rule.Element
+	var exclude [][]map[rule.DbField][]rule.Element
 	if err := json.Unmarshal([]byte(excludeStr), &exclude); err != nil {
 		panic(err)
 	}
 	//字段别名
-	fieldAlias := map[rule.DimensionType]rule.DimensionType{
+	fieldAlias := map[rule.DbField]rule.DbField{
 		"created_by": "o.created_by",
 	}
 	ctx := context.Background()
