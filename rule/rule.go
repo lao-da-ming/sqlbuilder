@@ -181,7 +181,7 @@ func buildSql(ctx context.Context, includeValues, excludeValues map[DimensionTyp
 		return sqlBuilder.String(), nil
 	}
 	sqlBuilder.WriteString("AND (")
-	//初始化i
+	//初始化index
 	index = 0
 	for field, value := range excludeValues {
 		index++
