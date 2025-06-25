@@ -48,6 +48,7 @@ func main() {
 	if err := json.Unmarshal([]byte(excludeStr), &exclude); err != nil {
 		panic(err)
 	}
+	//字段别名
 	fieldAlias := map[rule.DimensionType]rule.DimensionType{
 		"created_by": "o.created_by",
 	}
