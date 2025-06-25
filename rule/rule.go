@@ -22,7 +22,7 @@ func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAli
 	}
 	log.Println("指定的:", includeValues)
 	//包含的为空则无任何数据权限
-	if includeValues == nil {
+	if len(includeValues) == 0 {
 		return denySql, nil
 	}
 	//排除部分这层每个元素之间都是or关系
@@ -67,7 +67,7 @@ func getFieldValues(ctx context.Context, loginEmployee int64, exclude [][]map[da
 			return nil, err
 		}
 		//这层是or，没有就跳过
-		if secondLevelValues == nil {
+		if len(secondLevelValues) == 0 {
 			continue
 		}
 		//取对应字段并集
@@ -95,7 +95,7 @@ func secondLevel(ctx context.Context, loginEmployee int64, firstLevelItem []map[
 			return nil, err
 		}
 		//and有不成立直接返回
-		if thirdLevelValues == nil {
+		if len(thirdLevelValues) == 0 {
 			return nil, nil
 		}
 		//取对应字段的交集(这里循环其实只有一个元素)
