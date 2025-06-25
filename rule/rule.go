@@ -26,7 +26,7 @@ type Element struct {
 // 获取可以访问数据的sql条件，返回空sql表示无任何权限
 func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAlias map[DimensionType]DimensionType, include, exclude [][]map[DimensionType][]Element) (sql string, err error) {
 	//无权限返回的sql
-	denySql := " 1==2 "
+	denySql := " 1=2 "
 	includeValues, err := getFieldIds(ctx, loginEmployee, include)
 	if err != nil {
 		return "", err
