@@ -60,7 +60,7 @@ func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAli
 	}
 	log.Printf("最终差集为指定:%v  排除:%v \r\n", includeValues, excludeValues)
 	//处理别名(map引用无需返回值)
-	dealWithAlias(ctx, includeValues, excludeValues, fieldAlias)
+	setAlias(ctx, includeValues, excludeValues, fieldAlias)
 	//拼接sql
 	return buildSql(ctx, includeValues, excludeValues)
 }
@@ -198,7 +198,7 @@ func buildSql(ctx context.Context, includeValues, excludeValues map[DimensionTyp
 }
 
 // 处理别名
-func dealWithAlias(ctx context.Context, includeValues, excludeValues map[DimensionType][]any, fieldAlias map[DimensionType]DimensionType) {
+func setAlias(ctx context.Context, includeValues, excludeValues map[DimensionType][]any, fieldAlias map[DimensionType]DimensionType) {
 	for field, alias := range fieldAlias {
 		if value, ok := includeValues[field]; ok {
 			includeValues[alias] = value
