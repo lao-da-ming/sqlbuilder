@@ -49,9 +49,9 @@ func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAli
 	}
 	log.Printf("最终差集为指定:%v  排除:%v \r\n", includeValues, excludeValues)
 	//处理别名(map引用无需返回值)
-	setAlias(ctx, includeValues, excludeValues, fieldAlias)
+	setAlias(includeValues, excludeValues, fieldAlias)
 	//拼接sql
-	return buildSql(ctx, includeValues, excludeValues)
+	return buildSql(includeValues, excludeValues)
 }
 
 // 获取对应字段的拥有可查看的id值
