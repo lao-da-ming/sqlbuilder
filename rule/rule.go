@@ -129,7 +129,7 @@ func thirdLevel(ctx context.Context, loginEmployee int64, secondLevelItem map[da
 	//其实只有一个元素
 	for field, value := range secondLevelItem {
 		var collections []any //集合
-		//TODO添加不通的字段在这里维护数据源
+		//TODO添加不同的字段在这里维护数据源
 		switch field {
 		case data.CreatedBy: //人员id
 			collections, err = data.CreateByDimensional(ctx, loginEmployee, value)
