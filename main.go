@@ -51,7 +51,8 @@ func main() {
 	}
 	//字段别名
 	fieldAlias := map[data_factory.DbField]string{
-		"created_by": "o.created_by",
+		data_factory.CreatedBy: "o.created_by",
+		data_factory.Position:  "a.position",
 	}
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
