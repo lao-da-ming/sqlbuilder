@@ -13,26 +13,26 @@ type Element struct {
 }
 
 // 数据字段
-type DbField string
+type TableField string
 
 const (
-	CreatedBy        DbField = "created_by"        //创建人
-	Position         DbField = "position"          //岗位.
-	EmployeePosition DbField = "employee_position" //任职岗位
-	EmployeeRegular  DbField = "employee_regular"  //转正状态
-	EmployeeType     DbField = "employee_type"     //用工类型
-	EmployeeStatus   DbField = "employee_status"   //在职状态
-	EmployeeTrainee  DbField = "employee_trainee"  //培训生状态
+	CreatedBy        TableField = "created_by"        //创建人
+	Position         TableField = "position"          //岗位.
+	EmployeePosition TableField = "employee_position" //任职岗位
+	EmployeeRegular  TableField = "employee_regular"  //转正状态
+	EmployeeType     TableField = "employee_type"     //用工类型
+	EmployeeStatus   TableField = "employee_status"   //在职状态
+	EmployeeTrainee  TableField = "employee_trainee"  //培训生状态
 )
 
-// 为 DbField 实现 String 方法
-func (d DbField) String() string {
+// 为 TableField 实现 String 方法
+func (d TableField) String() string {
 	return string(d)
 }
 
 // 定义错误类型
 var (
-	ErrInvalidDbField = errors.New("invalid db field")
+	ErrInvalidTableField = errors.New("invalid db field")
 )
 
 // 数据源接口
@@ -56,7 +56,7 @@ func init() {
 }
 
 // 注册数据源，可用于动态注入
-func RegisterDataSource(field DbField, source DataSource) {
+func RegisterDataSource(field TableField, source DataSource) {
 	if source == nil {
 		return
 	}
@@ -69,10 +69,10 @@ func RegisterDataSource(field DbField, source DataSource) {
 }
 
 // new工厂实例
-func NewDataSource(field DbField) (DataSource, error) {
+func NewDataSource(field TableField) (DataSource, error) {
 	source, ok := mapDataSource.Load(field)
 	if !ok {
-		return nil, ErrInvalidDbField
+		return nil, ErrInvalidTableField
 	}
 	return source.(DataSource), nil
 }

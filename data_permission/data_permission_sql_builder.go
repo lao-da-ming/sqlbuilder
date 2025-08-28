@@ -17,7 +17,7 @@ func NewDataPermissionSqlBuilder() *DataPermissionSqlBuilder {
 }
 
 // 获取可以访问数据的sql条件，返回空sql表示无任何权限
-func (d *DataPermissionSqlBuilder) GetDataPermissionSql(ctx context.Context, loginEmployee int64, fieldAlias map[data_factory.DbField]string, include, exclude [][]map[data_factory.DbField][]data_factory.Element) (sql string, err error) {
+func (d *DataPermissionSqlBuilder) GetDataPermissionSql(ctx context.Context, loginEmployee int64, fieldAlias map[data_factory.TableField]string, include, exclude [][]map[data_factory.TableField][]data_factory.Element) (sql string, err error) {
 	//无权限返回的sql
 	denySql := " 1=2 "
 	includeValues, err := d.getFieldValues(ctx, loginEmployee, include)
@@ -59,12 +59,12 @@ func (d *DataPermissionSqlBuilder) GetDataPermissionSql(ctx context.Context, log
 }
 
 // 获取对应字段的拥有可查看的id值
-func (d *DataPermissionSqlBuilder) getFieldValues(ctx context.Context, loginEmployee int64, fieldValues [][]map[data_factory.DbField][]data_factory.Element) (map[data_factory.DbField][]any, error) {
+func (d *DataPermissionSqlBuilder) getFieldValues(ctx context.Context, loginEmployee int64, fieldValues [][]map[data_factory.TableField][]data_factory.Element) (map[data_factory.TableField][]any, error) {
 	if len(fieldValues) == 0 {
 		return nil, nil
 	}
 	//每个元素之间是or关系，取并集
-	mapFieldValues := make(map[data_factory.DbField][]any, len(fieldValues))
+	mapFieldValues := make(map[data_factory.TableField][]any, len(fieldValues))
 	for _, firstLevelItem := range fieldValues {
 		secondLevelValues, err := d.secondLevel(ctx, loginEmployee, firstLevelItem)
 		if err != nil {
@@ -90,9 +90,9 @@ func (d *DataPermissionSqlBuilder) getFieldValues(ctx context.Context, loginEmpl
 }
 
 // 第2层(元素之间与逻辑)
-func (d *DataPermissionSqlBuilder) secondLevel(ctx context.Context, loginEmployee int64, firstLevelItem []map[data_factory.DbField][]data_factory.Element) (map[data_factory.DbField][]any, error) {
+func (d *DataPermissionSqlBuilder) secondLevel(ctx context.Context, loginEmployee int64, firstLevelItem []map[data_factory.TableField][]data_factory.Element) (map[data_factory.TableField][]any, error) {
 	//这层每个元素之间都是and关系,取交集
-	mapFieldValues := make(map[data_factory.DbField][]any, len(firstLevelItem))
+	mapFieldValues := make(map[data_factory.TableField][]any, len(firstLevelItem))
 	for _, secondLevelItem := range firstLevelItem {
 		thirdLevelValues, err := d.thirdLevel(ctx, loginEmployee, secondLevelItem)
 		if err != nil {
@@ -124,9 +124,9 @@ func (d *DataPermissionSqlBuilder) secondLevel(ctx context.Context, loginEmploye
 }
 
 // 第3层
-func (d *DataPermissionSqlBuilder) thirdLevel(ctx context.Context, loginEmployee int64, secondLevelItem map[data_factory.DbField][]data_factory.Element) (map[data_factory.DbField][]any, error) {
+func (d *DataPermissionSqlBuilder) thirdLevel(ctx context.Context, loginEmployee int64, secondLevelItem map[data_factory.TableField][]data_factory.Element) (map[data_factory.TableField][]any, error) {
 	//map只有一个元素
-	mapFieldValues := make(map[data_factory.DbField][]any, 1)
+	mapFieldValues := make(map[data_factory.TableField][]any, 1)
 	//其实只有一个元素
 	for field, value := range secondLevelItem {
 		//根据field获取数据
@@ -149,7 +149,7 @@ func (d *DataPermissionSqlBuilder) thirdLevel(ctx context.Context, loginEmployee
 
 // ##########################辅助函数#######################################
 // 构建最终的sql
-func (d *DataPermissionSqlBuilder) buildSql(includeValues, excludeValues map[data_factory.DbField][]any) (string, error) {
+func (d *DataPermissionSqlBuilder) buildSql(includeValues, excludeValues map[data_factory.TableField][]any) (string, error) {
 	lengthInclude := len(includeValues)
 	lengthExclude := len(excludeValues)
 	//拼接sql
@@ -188,14 +188,14 @@ func (d *DataPermissionSqlBuilder) buildSql(includeValues, excludeValues map[dat
 }
 
 // 处理别名
-func (d *DataPermissionSqlBuilder) setAlias(includeValues, excludeValues map[data_factory.DbField][]any, fieldAlias map[data_factory.DbField]string) {
+func (d *DataPermissionSqlBuilder) setAlias(includeValues, excludeValues map[data_factory.TableField][]any, fieldAlias map[data_factory.TableField]string) {
 	for field, alias := range fieldAlias {
 		if value, ok := includeValues[field]; ok {
-			includeValues[data_factory.DbField(alias)] = value
+			includeValues[data_factory.TableField(alias)] = value
 			delete(includeValues, field)
 		}
 		if value, ok := excludeValues[field]; ok {
-			excludeValues[data_factory.DbField(alias)] = value
+			excludeValues[data_factory.TableField(alias)] = value
 			delete(excludeValues, field)
 		}
 	}

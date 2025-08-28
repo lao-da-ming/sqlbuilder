@@ -40,17 +40,17 @@ func main() {
 			]
 	]`
 	//指定部分
-	var include [][]map[data_factory.DbField][]data_factory.Element
+	var include [][]map[data_factory.TableField][]data_factory.Element
 	if err := json.Unmarshal([]byte(includeStr), &include); err != nil {
 		panic(err)
 	}
 	//排除部分
-	var exclude [][]map[data_factory.DbField][]data_factory.Element
+	var exclude [][]map[data_factory.TableField][]data_factory.Element
 	if err := json.Unmarshal([]byte(excludeStr), &exclude); err != nil {
 		panic(err)
 	}
 	//字段别名
-	fieldAlias := map[data_factory.DbField]string{
+	fieldAlias := map[data_factory.TableField]string{
 		data_factory.CreatedBy: "o.created_by",
 		data_factory.Position:  "a.position",
 	}
