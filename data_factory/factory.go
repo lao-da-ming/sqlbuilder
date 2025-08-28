@@ -1,6 +1,9 @@
 package data_factory
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 // 最小单元结构
 type Element struct {
@@ -21,30 +24,27 @@ const (
 	EmployeeTrainee  DbField = "employee_trainee"  //培训生状态
 )
 
+// 数据源实例字典，todo 新增的规则在这里添加
+var mapDataSource = map[DbField]DataSource{
+	CreatedBy:        &UserSource{},
+	Position:         &PositionSource{},
+	EmployeePosition: &EmployeePositionSource{},
+	EmployeeRegular:  &EmployeeRegularSource{},
+	EmployeeType:     &EmployeeTypeSource{},
+	EmployeeStatus:   &EmployeeStatusSource{},
+	EmployeeTrainee:  &EmployeeTraineeSource{},
+}
+
 // 获取数据源
 type DataSource interface {
 	GetData(ctx context.Context, userId int64, Elements []Element) (result []any, err error) //获取源数据
 }
 
 // new工厂实例
-func NewDataSource(field DbField) DataSource {
-	//todo 新增数据权限规则在这里新增
-	switch field {
-	case CreatedBy: //创建人
-		return &UserSource{}
-	case Position: //岗位
-		return &PositionSource{}
-	case EmployeePosition: //任职岗位
-		return &EmployeePositionSource{}
-	case EmployeeRegular: //转正状态
-		return &EmployeeRegularSource{}
-	case EmployeeType: //用工类型
-		return &EmployeeTypeSource{}
-	case EmployeeStatus: //在职状态
-		return &EmployeeStatusSource{}
-	case EmployeeTrainee: //培训生状态
-		return &EmployeeTraineeSource{}
-	default:
-		return nil
+func NewDataSource(field DbField) (DataSource, error) {
+	source, ok := mapDataSource[field]
+	if !ok {
+		return nil, errors.New("invalid db field")
 	}
+	return source, nil
 }

@@ -2,7 +2,6 @@ package rule
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
 	"log"
@@ -127,9 +126,9 @@ func thirdLevel(ctx context.Context, loginEmployee int64, secondLevelItem map[da
 	//其实只有一个元素
 	for field, value := range secondLevelItem {
 		//根据field获取数据
-		source := data_factory.NewDataSource(field)
-		if source == nil {
-			return nil, errors.New("invalid db field")
+		source, err := data_factory.NewDataSource(field)
+		if err != nil {
+			return nil, err
 		}
 		collections, err := source.GetData(ctx, loginEmployee, value)
 		if err != nil {
