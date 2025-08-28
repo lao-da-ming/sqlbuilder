@@ -13,7 +13,7 @@ type DbField string
 
 const (
 	CreatedBy        DbField = "created_by"        //创建人
-	Position         DbField = "position"          //岗位
+	Position         DbField = "position"          //岗位.
 	EmployeePosition DbField = "employee_position" //任职岗位
 	EmployeeRegular  DbField = "employee_regular"  //转正状态
 	EmployeeType     DbField = "employee_type"     //用工类型
