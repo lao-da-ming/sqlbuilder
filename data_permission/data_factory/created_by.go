@@ -16,11 +16,11 @@ func (u *UserSource) GetData(ctx context.Context, userId int64, Elements []Eleme
 		var uids []any
 		switch item.Type {
 		case "self": //员工自身
-			uids, err = self(ctx, userId, item.Value)
+			uids, err = u.self(ctx, userId, item.Value)
 		case "organization": //组织
-			uids, err = organization(ctx, userId, item.Value)
+			uids, err = u.organization(ctx, userId, item.Value)
 		case "custom": //自定义
-			uids, err = custom(ctx, userId, item.Value)
+			uids, err = u.custom(ctx, userId, item.Value)
 		}
 		if err != nil {
 			return nil, err
@@ -31,20 +31,20 @@ func (u *UserSource) GetData(ctx context.Context, userId int64, Elements []Eleme
 }
 
 // 本人
-func self(ctx context.Context, loginEmployee int64, value any) ([]any, error) {
+func (u *UserSource) self(ctx context.Context, userId int64, value any) ([]any, error) {
 	if value.(bool) {
-		return []any{loginEmployee}, nil
+		return []any{userId}, nil
 	}
 	return nil, nil
 }
 
 // 获取自定义权限人员定义
-func custom(ctx context.Context, loginEmployee int64, value any) ([]any, error) {
+func (u *UserSource) custom(ctx context.Context, userId int64, value any) ([]any, error) {
 	return []any{11, 50, 80, 90}, nil
 }
 
 // 所在组织||所在组织含下级
-func organization(ctx context.Context, loginEmployee int64, value any) ([]any, error) {
+func (u *UserSource) organization(ctx context.Context, userId int64, value any) ([]any, error) {
 	switch value.(string) {
 	case "directly":
 		//查询用户所在组织直接人员

@@ -15,7 +15,7 @@ func (p *PositionSource) GetData(ctx context.Context, userId int64, Elements []E
 		var pids []any
 		switch item.Type {
 		case "self":
-			pids, err = selfOrg(ctx, userId, item.Value)
+			pids, err = p.selfOrg(ctx, userId, item.Value)
 		}
 		if err != nil {
 			return nil, err
@@ -26,7 +26,7 @@ func (p *PositionSource) GetData(ctx context.Context, userId int64, Elements []E
 }
 
 // 本人所在组织
-func selfOrg(ctx context.Context, loginEmployee int64, value any) ([]any, error) {
+func (p *PositionSource) selfOrg(ctx context.Context, userId int64, value any) ([]any, error) {
 	if value.(bool) {
 		return []any{"11", "22", "33", "44"}, nil
 	}

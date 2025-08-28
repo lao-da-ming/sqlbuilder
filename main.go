@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sqlbuilder/data_factory"
-	"sqlbuilder/rule"
+	"sqlbuilder/data_permission"
+	"sqlbuilder/data_permission/data_factory"
 	"time"
 )
 
@@ -50,13 +50,14 @@ func main() {
 		panic(err)
 	}
 	//字段别名
-	fieldAlias := map[data_factory.DbField]data_factory.DbField{
+	fieldAlias := map[data_factory.DbField]string{
 		"created_by": "o.created_by",
 	}
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
 	defer cancel()
-	sql, err := rule.GetEmployeePermissionSql(ctx, 10, fieldAlias, include, exclude)
+	builder := data_permission.NewDataPermissionSqlBuilder()
+	sql, err := builder.GetDataPermissionSql(ctx, 10, fieldAlias, include, exclude)
 	if err != nil {
 		panic(err)
 	}
