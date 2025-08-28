@@ -1,25 +1,28 @@
-package data
+package data_factory
 
 import (
 	"context"
 	"github.com/duke-git/lancet/v2/slice"
 )
 
+type PositionSource struct {
+}
+
 // 组织维度
-func PositionDimensional(ctx context.Context, loginEmployee int64, Elements []Element) (positionIds []any, err error) {
+func (p *PositionSource) GetData(ctx context.Context, userId int64, Elements []Element) (result []any, err error) {
 	//每个元素之间是或关系，取并集
 	for _, item := range Elements {
 		var pids []any
 		switch item.Type {
 		case "self":
-			pids, err = selfOrg(ctx, loginEmployee, item.Value)
+			pids, err = selfOrg(ctx, userId, item.Value)
 		}
 		if err != nil {
 			return nil, err
 		}
-		positionIds = append(positionIds, pids...)
+		result = append(result, pids...)
 	}
-	return slice.Unique(positionIds), nil
+	return slice.Unique(result), nil
 }
 
 // 本人所在组织

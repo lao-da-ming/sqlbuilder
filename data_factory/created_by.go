@@ -1,4 +1,4 @@
-package data
+package data_factory
 
 import (
 	"context"
@@ -6,25 +6,28 @@ import (
 	"github.com/duke-git/lancet/v2/slice"
 )
 
+type UserSource struct {
+}
+
 // createBy维度
-func CreateByDimensional(ctx context.Context, loginEmployee int64, Elements []Element) (userIds []any, err error) {
+func (u *UserSource) GetData(ctx context.Context, userId int64, Elements []Element) (result []any, err error) {
 	//每个元素之间是或关系，取并集
 	for _, item := range Elements {
 		var uids []any
 		switch item.Type {
 		case "self": //员工自身
-			uids, err = self(ctx, loginEmployee, item.Value)
+			uids, err = self(ctx, userId, item.Value)
 		case "organization": //组织
-			uids, err = organization(ctx, loginEmployee, item.Value)
+			uids, err = organization(ctx, userId, item.Value)
 		case "custom": //自定义
-			uids, err = custom(ctx, loginEmployee, item.Value)
+			uids, err = custom(ctx, userId, item.Value)
 		}
 		if err != nil {
 			return nil, err
 		}
-		userIds = append(userIds, uids...)
+		result = append(result, uids...)
 	}
-	return slice.Unique(userIds), nil
+	return slice.Unique(result), nil
 }
 
 // 本人

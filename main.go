@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sqlbuilder/data_factory"
 	"sqlbuilder/rule"
-	"sqlbuilder/rule/data"
 	"time"
 )
 
@@ -40,17 +40,17 @@ func main() {
 			]
 	]`
 	//指定部分
-	var include [][]map[data.DbField][]data.Element
+	var include [][]map[data_factory.DbField][]data_factory.Element
 	if err := json.Unmarshal([]byte(includeStr), &include); err != nil {
 		panic(err)
 	}
 	//排除部分
-	var exclude [][]map[data.DbField][]data.Element
+	var exclude [][]map[data_factory.DbField][]data_factory.Element
 	if err := json.Unmarshal([]byte(excludeStr), &exclude); err != nil {
 		panic(err)
 	}
 	//字段别名
-	fieldAlias := map[data.DbField]data.DbField{
+	fieldAlias := map[data_factory.DbField]data_factory.DbField{
 		"created_by": "o.created_by",
 	}
 	ctx := context.Background()

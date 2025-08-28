@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
 	"reflect"
-	"sqlbuilder/rule/data"
+	"sqlbuilder/data_factory"
 	"strings"
 )
 
 // 构建最终的sql
-func buildSql(includeValues, excludeValues map[data.DbField][]any) (string, error) {
+func buildSql(includeValues, excludeValues map[data_factory.DbField][]any) (string, error) {
 	lengthInclude := len(includeValues)
 	lengthExclude := len(excludeValues)
 	//拼接sql
@@ -48,7 +48,7 @@ func buildSql(includeValues, excludeValues map[data.DbField][]any) (string, erro
 }
 
 // 处理别名
-func setAlias(includeValues, excludeValues map[data.DbField][]any, fieldAlias map[data.DbField]data.DbField) {
+func setAlias(includeValues, excludeValues map[data_factory.DbField][]any, fieldAlias map[data_factory.DbField]data_factory.DbField) {
 	for field, alias := range fieldAlias {
 		if value, ok := includeValues[field]; ok {
 			includeValues[alias] = value

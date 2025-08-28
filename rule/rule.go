@@ -2,10 +2,11 @@ package rule
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
 	"log"
-	"sqlbuilder/rule/data"
+	"sqlbuilder/data_factory"
 )
 
 // 维度
@@ -13,7 +14,7 @@ import (
 // 元素
 
 // 获取可以访问数据的sql条件，返回空sql表示无任何权限
-func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAlias map[data.DbField]data.DbField, include, exclude [][]map[data.DbField][]data.Element) (sql string, err error) {
+func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAlias map[data_factory.DbField]data_factory.DbField, include, exclude [][]map[data_factory.DbField][]data_factory.Element) (sql string, err error) {
 	//无权限返回的sql
 	denySql := " 1=2 "
 	includeValues, err := getFieldValues(ctx, loginEmployee, include)
@@ -55,13 +56,13 @@ func GetEmployeePermissionSql(ctx context.Context, loginEmployee int64, fieldAli
 }
 
 // 获取对应字段的拥有可查看的id值
-func getFieldValues(ctx context.Context, loginEmployee int64, exclude [][]map[data.DbField][]data.Element) (map[data.DbField][]any, error) {
-	if len(exclude) == 0 {
+func getFieldValues(ctx context.Context, loginEmployee int64, fieldValues [][]map[data_factory.DbField][]data_factory.Element) (map[data_factory.DbField][]any, error) {
+	if len(fieldValues) == 0 {
 		return nil, nil
 	}
 	//每个元素之间是or关系，取并集
-	mapFieldValues := make(map[data.DbField][]any, len(exclude))
-	for _, firstLevelItem := range exclude {
+	mapFieldValues := make(map[data_factory.DbField][]any, len(fieldValues))
+	for _, firstLevelItem := range fieldValues {
 		secondLevelValues, err := secondLevel(ctx, loginEmployee, firstLevelItem)
 		if err != nil {
 			return nil, err
@@ -86,9 +87,9 @@ func getFieldValues(ctx context.Context, loginEmployee int64, exclude [][]map[da
 }
 
 // 第2层(元素之间与逻辑)
-func secondLevel(ctx context.Context, loginEmployee int64, firstLevelItem []map[data.DbField][]data.Element) (map[data.DbField][]any, error) {
+func secondLevel(ctx context.Context, loginEmployee int64, firstLevelItem []map[data_factory.DbField][]data_factory.Element) (map[data_factory.DbField][]any, error) {
 	//这层每个元素之间都是and关系,取交集
-	mapFieldValues := make(map[data.DbField][]any, len(firstLevelItem))
+	mapFieldValues := make(map[data_factory.DbField][]any, len(firstLevelItem))
 	for _, secondLevelItem := range firstLevelItem {
 		thirdLevelValues, err := thirdLevel(ctx, loginEmployee, secondLevelItem)
 		if err != nil {
@@ -120,22 +121,17 @@ func secondLevel(ctx context.Context, loginEmployee int64, firstLevelItem []map[
 }
 
 // 第3层
-func thirdLevel(ctx context.Context, loginEmployee int64, secondLevelItem map[data.DbField][]data.Element) (map[data.DbField][]any, error) {
+func thirdLevel(ctx context.Context, loginEmployee int64, secondLevelItem map[data_factory.DbField][]data_factory.Element) (map[data_factory.DbField][]any, error) {
 	//map只有一个元素
-	var (
-		err            error
-		mapFieldValues = make(map[data.DbField][]any, 1)
-	)
+	mapFieldValues := make(map[data_factory.DbField][]any, 1)
 	//其实只有一个元素
 	for field, value := range secondLevelItem {
-		var collections []any //集合
-		//TODO添加不同的字段在这里维护数据源
-		switch field {
-		case data.CreatedBy: //人员id
-			collections, err = data.CreateByDimensional(ctx, loginEmployee, value)
-		case data.Position: //岗位id
-			collections, err = data.PositionDimensional(ctx, loginEmployee, value)
+		//根据field获取数据
+		source := data_factory.NewDataSource(field)
+		if source == nil {
+			return nil, errors.New("invalid db field")
 		}
+		collections, err := source.GetData(ctx, loginEmployee, value)
 		if err != nil {
 			return nil, err
 		}
